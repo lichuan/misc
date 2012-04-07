@@ -13,6 +13,8 @@
  ;; If there is more than one, they won't work right.
  )
 
+(setq default-tab-width 4)
+(setq-default indent-tabs-mode nil)
 
 ;;configure collection of emacs development enviroment tools (cedet)
 (load-file "~/.emacs.d/cedet-1.0/common/cedet.el")
@@ -163,9 +165,6 @@
   (x-send-client-message nil 0 nil "_NET_WM_STATE" 32
 	    		 '(2 "_NET_WM_STATE_MAXIMIZED_HORZ" 0)))
 (add-hook 'window-setup-hook 'fullscreen)
-
-
-(setq-default indent-tabs-mode nil);;disable tab key effect
 
 ;; (defun my-c-mode-common-hook ()
 ;;   ;; my customizations for all of c-mode and related modes
