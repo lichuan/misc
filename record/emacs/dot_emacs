@@ -16,133 +16,9 @@
 (setq default-tab-width 4)
 (setq-default indent-tabs-mode nil)
 
-;;configure collection of emacs development enviroment tools (cedet)
-(load-file "~/.emacs.d/cedet-1.0/common/cedet.el")
-(global-ede-mode 1)                      ; Enable the Project management system
-(global-srecode-minor-mode 1)            ; Enable template insertion menu
-(semantic-load-enable-excessive-code-helpers)
-(require 'semantic-ia)
-(require 'semantic-gcc)
-;;(semantic-add-system-include "~/exp/include/boost_1_37" 'c++-mode)
-
-(setq-mode-local c-mode semanticdb-find-default-throttle
-                 '(project unloaded system recursive))
-
-(defun my-semantic-hook ()
-  (imenu-add-to-menubar "TAGS"))
-(add-hook 'semantic-init-hooks 'my-semantic-hook)
-
-
-(require 'semanticdb)
-(global-semanticdb-minor-mode 1)
-
-;; (ede-cpp-root-project "lcd6"
-;;                 :name "d6 server"
-;;                 ;:file "~/work/project/CMakeLists.txt"
-;;                 :file "~/win_share/server/build.bat"
-;;                 :include-path '("/"
-;;                                 )
-;;                 :system-include-path '("~/include")
-;;                 :spp-table '(("isUnix" . "")
-;;                              ("BOOST_TEST_DYN_LINK" . "")))
-
-
-;; (setq qt4-base-dir "/usr/include/qt4")
-;; (semantic-add-system-include qt4-base-dir 'c++-mode)
-;; (add-to-list 'auto-mode-alist (cons qt4-base-dir 'c++-mode))
-;; (add-to-list 'semantic-lex-c-preprocessor-symbol-file (concat qt4-base-dir "/Qt/qconfig.h"))
-;; (add-to-list 'semantic-lex-c-preprocessor-symbol-file (concat qt4-base-dir "/Qt/qconfig-dist.h"))
-;; (add-to-list 'semantic-lex-c-preprocessor-symbol-file (concat qt4-base-dir "/Qt/qglobal.h"))
-
-
 (add-to-list 'load-path
              "/home/lichuan/.emacs.d/cscope")
 (require 'xcscope)
-
-
-;;configure ecb
-(add-to-list 'load-path
-             "/home/lichuan/.emacs.d/ecb-2.40")
-
-(require 'ecb)
-(setq ecb-tip-of-the-day nil)
-(ecb-activate)
-(ecb-hide-ecb-windows)
-
-(global-set-key (kbd "C-c j") 'windmove-left)
-(global-set-key (kbd "C-c l") 'windmove-right)
-(global-set-key (kbd "C-c i") 'windmove-up)
-(global-set-key (kbd "C-c k") 'windmove-down)
-
-
-(define-key global-map (kbd "C-c h") 'ecb-hide-ecb-windows)
-(define-key global-map (kbd "C-c ;") 'ecb-show-ecb-windows)
-
-
-(define-key global-map "\C-c1" 'ecb-maximize-window-directories)
-(define-key global-map "\C-c2" 'ecb-maximize-window-sources)
-(define-key global-map "\C-c3" 'ecb-maximize-window-methods)
-(define-key global-map "\C-c4" 'ecb-maximize-window-history)
-(define-key global-map "\C-cd" 'ecb-restore-default-window-sizes)
-
-
-(require 'semantic-sb)
-;; (add-hook 'semantic-init-hooks (lambda ()
-;;   (imenu-add-to-menubar "TAGS")))
-
-(prefer-coding-system 'chinese-gbk)
-(prefer-coding-system 'gbk)
-(prefer-coding-system 'utf-8)
-
-
-(defun my-cedet-hook ()
-  (local-set-key [(control return)] 'semantic-ia-complete-symbol)
-  (local-set-key "\C-cc" 'semantic-ia-complete-symbol-menu)
-  (local-set-key "\C-ct" 'semantic-ia-complete-tip)
-  (local-set-key "\C-cx" 'gtags-find-rtag)
-  (local-set-key "\C-cp" 'semantic-analyze-proto-impl-toggle)
-  (local-set-key "\C-cf" 'semantic-decoration-include-visit)
-  (local-set-key "\C-cg" 'semantic-ia-fast-jump)
-  
-  ;;(define-key c-mode-base-map [(return)] 'newline-and-indent)
-  (local-set-key [(return)] 'newline-and-indent)
-  
-  ;;(local-set-key "\C-c>" 'semantic-complete-analyze-inline)
-  ;; (local-set-key "\C-cq" 'semantic-ia-show-doc)
-  ;; (local-set-key "\C-cm" 'semantic-ia-show-summary)
-  ;; (local-set-key "\C-c+" 'semantic-tag-folding-show-block)
-  ;; (local-set-key "\C-c-" 'semantic-tag-folding-fold-block)
-  ;; (local-set-key "\C-c\C-c+" 'semantic-tag-folding-show-all)
-  ;; (local-set-key "\C-c\C-c-" 'semantic-tag-folding-fold-all)
-  )
-(add-hook 'c-mode-common-hook 'my-cedet-hook)
-
-;; (defun my-c-mode-cedet-hook ()
-;;  (local-set-key "." 'semantic-complete-self-insert)
-;;  (local-set-key ">" 'semantic-complete-self-insert))
-;; (add-hook 'c-mode-common-hook 'my-c-mode-cedet-hook)
-
-(global-semantic-tag-folding-mode 1)
-
-
-(require 'eassist)
-                                        ;(concat essist-header-switches ("hh" "cc"))
-(defun alexott/c-mode-cedet-hook ()
-  (local-set-key "\C-ce" 'eassist-switch-h-cpp)
-  (local-set-key "\C-cm" 'eassist-list-methods)
-  (local-set-key "\C-cr" 'semantic-symref)
-  )
-(add-hook 'c-mode-common-hook 'alexott/c-mode-cedet-hook)
-
-;; if you want to enable support for gnu global
-(require 'semanticdb-global)
-(semanticdb-enable-gnu-global-databases 'c-mode)
-(semanticdb-enable-gnu-global-databases 'c++-mode)
-
-(require 'semanticdb-ectag)
-(semantic-load-enable-primary-exuberent-ctags-support)
-                                        ;(global-semantic-idle-tag-highlight-mode 1)
-
 
 ;;windows maximize window
 ;; (defun w32-restore-frame () 
@@ -155,7 +31,6 @@
 ;;   (interactive) 
 ;;   (w32-send-sys-command 61488)) 
 ;; (w32-maximize-frame)
-
 
 ;;unix-like maximize window
 (defun fullscreen (&optional f)
@@ -173,13 +48,6 @@
 ;;   ;;(setq c-offsets-alist '((friend . '-)))
 ;;   )
 ;; (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-
-(add-hook 'c-mode-hook
-          '(lambda ()
-             (gtags-mode 1)))
-(add-hook 'c++-mode-hook
-          '(lambda ()
-             (gtags-mode 1)))
 
 (add-hook 'c-mode-hook
           '(lambda ()
@@ -201,47 +69,3 @@
 ;; (add-hook 'c++-mode-hook
 ;;           '(lambda ()
 ;;              (c-toggle-auto-newline)))
-
-
-
-;;auto-complete config
-(add-to-list 'load-path "~/.emacs.d/auto-complete/")
-(require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/auto-complete//ac-dict")
-(ac-config-default)
-(define-key ac-mode-map (kbd "C-,") 'auto-complete)
-(setq ac-auto-start nil)
-(setq ac-auto-show-menu nil)
-
-;; (define-key ac-completing-map "\t" 'ac-complete)
-;; (define-key ac-completing-map "\r" nil)
-
-(setq ac-use-menu-map t)
-;;default by above setting
-;; (define-key ac-menu-map "\C-n" 'ac-next)
-;; (define-key ac-menu-map "\C-p" 'ac-previous)
-(define-key ac-menu-map [(return)] 'ac-complete)
-
-(add-hook 'c-mode-hook (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
-(add-hook 'c++-mode-hook (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
-
-;;yasnippet config
-(add-to-list 'load-path 
-             "~/.emacs.d/yasnippet/")
-(require 'yasnippet-bundle)
-
-
-;;clang config
-(add-to-list 'load-path 
-            "~/.emacs.d/clang/")
-(require 'auto-complete-clang)
-
-(defun my-ac-clang-hook()
-  (setq ac-sources (append '(ac-source-clang ac-source-yasnippet) ac-sources))
-)
-(add-hook 'c-mode-common-hook 'my-ac-clang-hook)
-;;(global-auto-complete-mode t)
-;; (add-hook 'c-mode-hook (lambda () (add-to-list 'ac-sources 'ac-source-clang)))
-;; (add-hook 'c++-mode-hook (lambda () (add-to-list 'ac-sources 'ac-source-clang)))
-;; (add-hook 'c-mode-hook (lambda () (add-to-list 'ac-sources 'ac-source-yasnippet)))
-;; (add-hook 'c++-mode-hook (lambda () (add-to-list 'ac-sources 'ac-source-yasnippet)))
