@@ -95,7 +95,6 @@ namespace memory
         template<typename T>
         T* new_object(bool pool = false)
         {
-            return new T;
             std::string nameT (typeid(T).name());
 
             if(mPoolMap.find(nameT) == mPoolMap.end())
