@@ -3,8 +3,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ecb-layout-window-sizes nil)
- '(ecb-options-version "2.40")
  '(inhibit-startup-screen t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -36,9 +34,9 @@
 (defun fullscreen (&optional f)
   (interactive)
   (x-send-client-message nil 0 nil "_NET_WM_STATE" 32
-	    		 '(2 "_NET_WM_STATE_MAXIMIZED_VERT" 0))
+                          '(2 "_NET_WM_STATE_MAXIMIZED_VERT" 0))
   (x-send-client-message nil 0 nil "_NET_WM_STATE" 32
-	    		 '(2 "_NET_WM_STATE_MAXIMIZED_HORZ" 0)))
+                          '(2 "_NET_WM_STATE_MAXIMIZED_HORZ" 0)))
 (add-hook 'window-setup-hook 'fullscreen)
 
 ;; (defun my-c-mode-common-hook ()
@@ -63,9 +61,14 @@
           '(lambda ()
              (c-set-style "stroustrup")))
 
-;; (add-hook 'c-mode-hook
-;;           '(lambda ()
-;;              (c-toggle-auto-newline)))
-;; (add-hook 'c++-mode-hook
-;;           '(lambda ()
-;;              (c-toggle-auto-newline)))
+(add-hook 'c-mode-hook
+          '(lambda ()
+             (c-toggle-auto-newline)))
+(add-hook 'c++-mode-hook
+          '(lambda ()
+             (c-toggle-auto-newline)))
+
+
+
+
+
