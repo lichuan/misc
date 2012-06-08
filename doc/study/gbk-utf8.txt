@@ -1,0 +1,96 @@
+gbk转换到utf8:
+
+std::string gb2utf8(const std::string strGBK)
+{	
+	const char *str = strGBK.c_str();
+	const unsigned int CP_GBK = 936;
+	int len = MultiByteToWideChar(CP_GBK, 0, str, -1, NULL, 0);
+	wchar_t* buf1 = new wchar_t[len + 1];
+	memset(buf1, 0, (len + 1)* sizeof(wchar_t));
+	MultiByteToWideChar(CP_GBK, 0, str, -1, buf1, len);
+
+	len = WideCharToMultiByte(CP_UTF8, 0, buf1, -1, NULL, 0, NULL, NULL);
+	char* buf2 = new char[len + 1];
+	memset(buf2, 0, len + 1);
+	WideCharToMultiByte(CP_UTF8, 0, buf1, -1, buf2, len, NULL, NULL);
+	std::string ret = buf2;
+	delete[] buf1;
+	delete[] buf2;
+
+	return ret;
+}
+
+
+
+判断是否是常规的gb2312的编码(不包括空白段)，检测特殊符号:
+
+static bool isValidStr(std::string data)
+{
+	if(data.empty())
+	{
+		return false;
+	}
+
+	std::string invalidStr = ", . ?	/  　		*:'\"<>|\\;";
+
+	if(data.find_first_of(invalidStr) != std::string::npos)
+	{
+		return false;
+	}
+
+	UINT sz = data.length();
+	UINT index = 0;
+
+	while(true)
+	{
+		if(index == sz)
+		{
+			break;
+		}
+
+		BYTE val = data[index];
+
+		if(val == 0)
+		{
+			return false;
+		}
+
+		if(val < 0x7f)
+		{
+			//is ascii
+			++index;
+
+			continue;
+		}
+
+		else if(val < 0xa1)
+		{
+			return false;
+		}
+	
+		if(index + 1 == sz)
+		{
+			return false;
+		}		
+
+		//空白段
+		if(val > 0xa9 && val < 0xb0 || val > 0xf7)
+		{
+			return false;
+		}
+
+		BYTE nextVal = data[index + 1];
+
+		if(nextVal < 0xa0 || nextVal > 0xff)
+		{
+			return false;
+		}
+
+		index += 2;	
+	}
+
+	return true;
+}
+
+
+ 

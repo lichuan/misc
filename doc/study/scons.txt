@@ -1,0 +1,78 @@
+scons采用python语言作为其构建语言，因此非常强大灵活，举例如下:
+
+env = Environment(MSVC_VERSION="9.0", CXXFLAGS=["/EHsc", "/MD", "/Zi"])
+COMMON_LIBS = []
+GAMESERVER_CPPPATH = []
+GAMESERVER_LIBPATH = []
+GAMESERVER_LINKFLAGS = []
+
+def build_common():
+    Export("env")
+
+    #xlib
+    xlib_target = SConscript("BGLServer/xlib/source/SConscript", variant_dir="build/xlib", duplicate=0)
+
+    #public
+    public_target = SConscript("BGLServer/public/SConscript", variant_dir="build/public", duplicate=0)
+
+    #gui
+    gui_target = SConscript("EasyGui/EasyGui/SConscript", variant_dir="build/gui", duplicate=0)
+
+    global COMMON_LIBS
+    
+    COMMON_LIBS = [
+        xlib_target,
+        public_target,
+        gui_target,
+        "gdi32",
+        "advapi32"
+        ]
+
+def build_gameserver():
+    #gameserver
+    global GAMESERVER_LINKFLAGS
+    global GAMESERVER_LIBPATH
+    global GAMESERVER_CPPPATH
+    
+    GAMESERVER_CPPPATH = [
+        "#3rdLib/protobuf-2.3.0/include",
+        "#3rdLib/ticpp/include",
+        "#3rdLib/zlib/include",
+        "#3rdLib/MiniDump/include",
+        ]
+
+    GAMESERVER_LIBPATH = [
+        "#3rdLib/protobuf-2.3.0/lib",
+        "#3rdLib/zlib/lib",
+        "#3rdLib/ticpp/lib",
+        "#3rdLib/MiniDump/lib",
+        ],
+
+    GAMESERVER_LINKFLAGS = [
+        "/DEBUG",
+        "/PDB:\"build/bin/loginserver.pdb\""
+        ],
+
+    game_env = env.Clone(CPPPATH = GAMESERVER_CPPPATH, LIBPATH = GAMESERVER_LIBPATH, LIBS = COMMON_LIBS, LINKFLAGS = GAMESERVER_LINKFLAGS)
+    Export("game_env")
+    gs_target = SConscript("BGLServer/loginserver/SConscript", variant_dir="build/loginserver", duplicate=0)
+    env.Install("build/bin", gs_target)
+
+def build_selserver():
+    SEL_LINKFLAGS = [
+        "/DEBUG",
+        "/PDB:\"build/bin/selserver.pdb\""
+        ]
+
+    sel_env = env.Clone(CPPPATH = GAMESERVER_CPPPATH, LIBPATH = GAMESERVER_LIBPATH, LIBS = COMMON_LIBS, LINKFLAGS = SEL_LINKFLAGS)
+    Export("sel_env")
+    sel_target = SConscript("BGLServer/selectcharserver/SConscript", variant_dir="build/selserver", duplicate=0)
+    env.Install("build/bin", sel_target)
+
+def start_build():
+    build_common()
+    build_gameserver()
+    build_selserver()
+    
+#start.............
+start_build()

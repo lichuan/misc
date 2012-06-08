@@ -1,0 +1,150 @@
+用python遍历目录下文件(包括子目录):
+
+#coding=gbk
+"""
+实现服务器资源data文本文件加密
+"""
+
+__author__ = 'lc'
+
+import os
+import sys
+import traceback
+
+ENCRYPT_DIR = "path"
+PASSWORD = [0x88, 0x04, 0xfe, 0xef, 0xaa]
+
+def check_arg():
+    if len(sys.argv) != 2:
+        print("参数不正确! 用法: encrypt_data 要加密的目录")
+        exit(1)
+
+    global ENCRYPT_DIR
+    ENCRYPT_DIR = sys.argv[1]
+
+def encrypt_data():
+    try:
+        check_arg()
+        print("正在加密, 请稍候......")
+        for root, dirs, files in os.walk(ENCRYPT_DIR):
+            if root.find(".git") != -1:
+                continue
+
+            for file in files:
+                if not (file.endswith(".txt") or file.endswith(".ini")):
+                    continue
+
+                file = os.path.join(root, file)
+                fp = open(file, "rb")
+                fileLines = fp.readlines()
+                fp.close()
+                fp = open(file, "wb")
+                pwdindex = 0
+
+                for rline in fileLines:
+                    rbytes = bytearray(rline)
+                    wline = bytearray("")
+                    for val in rbytes:
+                        pwdindex = 0 if pwdindex >= len(PASSWORD) else pwdindex
+                        val ^= PASSWORD[pwdindex]
+                        pwdindex = pwdindex + 1
+                        wline.append(val)
+                    fp.write(wline)
+
+    except Exception:
+        traceback.print_exc()
+    else:
+        print("加密成功")
+
+if __name__ == "__main__":
+    encrypt_data()
+
+
+    
+用python遍历目录下文件(不包括子目录):
+
+#!/usr/bin/env python
+#coding=gbk
+__author__ = 'lc'
+
+import MySQLdb
+import glob
+import os
+import sys
+
+DB_HOST = "localhost"
+DB_USER = "root"
+DB_PWD = "root"
+DB_DATABASE = "database"
+CHARVAR_PATH = "dir"
+NOT_EXIST_FILE = "./not_exist_character.txt"
+EXPORT_SQL_FILE = "./character_var.sql"
+
+def check_arg():
+    if len(sys.argv) != 2:
+        print("参数不正确! 用法: convert_charvar.py 变量目录")
+        exit(1)
+        
+    global CHARVAR_PATH
+    CHARVAR_PATH = sys.argv[1]
+    
+def convert_and_dump():
+    check_arg()
+    print("正在执行转换, 请稍候......")
+    
+    try:
+        fp = None        
+        cursor = None
+        sql_fp = open(EXPORT_SQL_FILE, "w")
+        not_exist_fp = open(NOT_EXIST_FILE, "w")
+        dbConn = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB_DATABASE)
+        cursor = dbConn.cursor()
+
+        for varFile in glob.glob(CHARVAR_PATH + os.sep + "*.txt"):
+            fileName = os.path.basename(varFile)
+            charName = fileName.rsplit(".txt")[0]
+            sql = "select id from tbl_character_info where name = '{}'".format(charName)
+            resNum = cursor.execute(sql)
+
+            if resNum == 0:
+                print("玩家 {} 在数据库角色表中查询不存在".format(charName))
+                not_exist_fp.write(charName + "\n")
+                continue
+
+            row = cursor.fetchone()
+            charid = row[0]
+            fp = open(varFile, "r")
+            varLst = fp.readlines()
+            fp.close()
+
+            for var in varLst:
+                oneLst = var.split("=")
+
+                if len(oneLst) != 2:
+                    continue
+                
+                name = oneLst[0].strip()
+                value = oneLst[1].strip(" \n\"")
+                INSERT_PREFIX = "insert into tbl_character_var (charid, name, value) values({}, '{}', '{}');    #角色名:{}"
+                sql = INSERT_PREFIX.format(charid, name, value, charName)
+                sql_fp.write(sql + "\n")
+
+    except Exception as exp:
+        print("严重错误: " + str(exp))
+        
+    else:
+        print("执行完毕, sql语句保存在" + EXPORT_SQL_FILE + ", 不存在的玩家名保存在" + NOT_EXIST_FILE)
+        
+    finally:
+        dbConn.close()
+        sql_fp.close()
+        not_exist_fp.close()
+        
+        if cursor is not None:
+            cursor.close()        
+
+        if fp is not None:
+            fp.close()
+            
+if __name__ == "__main__":    
+    convert_and_dump()
