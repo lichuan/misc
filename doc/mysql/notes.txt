@@ -1,0 +1,1 @@
+如果select * from where name = '中文' 此时出现名字不唯一， 那么， 修改字段为 char(50) binary （也就是在后面加个binary)
