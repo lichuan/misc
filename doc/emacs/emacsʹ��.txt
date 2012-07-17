@@ -1,2 +1,0 @@
-查看其他目录的info文件: C-u C-h i ~/INFO-FILE <RET>
-查看其他info文件的node: C-h i g (~/INFO-FILE) <RET>
