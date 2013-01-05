@@ -3,7 +3,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(grep-find-command "find . -type f -print0 | \"xargs\" -0 -e grep -niH -e ")
  '(inhibit-startup-screen t)
+ '(make-backup-files nil)
  '(nxml-child-indent 4))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
