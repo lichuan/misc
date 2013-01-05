@@ -6,3 +6,5 @@ texturepacker
 ticpp
 mysql++
 emacs
+cygwin
+mingw
