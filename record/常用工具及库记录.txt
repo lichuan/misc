@@ -1,0 +1,8 @@
+scons
+git
+ace
+boost
+texturepacker
+ticpp
+mysql++
+emacs
