@@ -17,9 +17,18 @@
 (setq default-tab-width 4)
 (setq-default indent-tabs-mode nil)
 
+;;cscope
 (add-to-list 'load-path
              "/home/lichuan/.emacs.d/cscope")
 (require 'xcscope)
+
+;;multi term                                                                                                                                                           
+(add-to-list 'load-path
+             "/home/lichuan/.emacs.d/common")
+(require 'multi-term)
+(global-set-key (kbd "C-c m") 'multi-term)
+(global-set-key (kbd "C-c n") 'multi-term-next)
+(global-set-key (kbd "C-c p") 'multi-term-prev)
 
 ;;windows maximize window
 ;; (defun w32-restore-frame () 
