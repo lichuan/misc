@@ -6,7 +6,10 @@
  '(grep-find-command "find . -type f -print0 | \"xargs\" -0 -e grep -niH -e ")
  '(inhibit-startup-screen t)
  '(make-backup-files nil)
- '(nxml-child-indent 4))
+ '(nxml-child-indent 4)
+ '(sql-database "game")
+ '(sql-password "lichuan")
+ '(sql-user "lichuan"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -16,6 +19,7 @@
 
 (setq default-tab-width 4)
 (setq-default indent-tabs-mode nil)
+(setq multi-term-program "/bin/bash")
 
 ;;cscope
 (add-to-list 'load-path
@@ -23,12 +27,21 @@
 (require 'xcscope)
 
 ;;multi term                                                                                                                                                           
-(add-to-list 'load-path
-             "/home/lichuan/.emacs.d/common")
-(require 'multi-term)
 (global-set-key (kbd "C-c m") 'multi-term)
 (global-set-key (kbd "C-c n") 'multi-term-next)
 (global-set-key (kbd "C-c p") 'multi-term-prev)
+(add-to-list 'load-path
+             "/home/lichuan/.emacs.d/other")
+(require 'multi-term)
+
+;;mysql                                                                                                                                                                
+(global-set-key (kbd "C-c l") 'sql-mysql)
+
+;;lua                                                                                                                                                                  
+(add-to-list 'load-path "/home/lichuan/.emacs.d/lua")
+(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
+(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
+(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 
 ;;windows maximize window
 ;; (defun w32-restore-frame () 
