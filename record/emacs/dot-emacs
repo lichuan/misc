@@ -20,6 +20,7 @@
 (setq default-tab-width 4)
 (setq-default indent-tabs-mode nil)
 (setq multi-term-program "/bin/bash")
+(setq auto-mode-alist(cons '("\\.h$" . c++-mode) auto-mode-alist))
 
 ;;cscope
 (add-to-list 'load-path
