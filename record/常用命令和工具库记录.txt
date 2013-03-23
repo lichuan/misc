@@ -8,6 +8,7 @@ mysql++
 emacs
 cygwin
 mingw
+junction.exe
 
 linux: netstat -anpt
 windows: netstat -abnop tcp
