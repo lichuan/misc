@@ -11,7 +11,7 @@ set fi=fso.opentextfile(file_path)
 d=fi.readall 
 fi.close  
 set f=fso.opentextfile(file_path, 2) 
-f.write  Replace(d,a,WScript.Arguments(1))
+f.write  Replace(d,a,"            VALUE ""FileVersion"", """ + WScript.Arguments(1) + """")
 f.close  
 end if
 loop  
