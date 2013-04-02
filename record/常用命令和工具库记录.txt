@@ -9,6 +9,7 @@ emacs
 cygwin
 mingw
 junction.exe
+jenkins
 
 linux: netstat -anpt
 windows: netstat -abnop tcp
