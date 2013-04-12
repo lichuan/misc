@@ -1,5 +1,6 @@
 scons
 git
+boar
 ace
 boost
 texturepacker
