@@ -82,16 +82,6 @@
   (setq ac-sources (append '(ac-source-clang ac-source-yasnippet) ac-sources)))
 (add-hook 'c-mode-common-hook 'my-ac-cc-mode-setup)
 
-;;ruby rsense
-(setq rsense-home "/home/lichuan/opt/rsense-0.3")
-(add-to-list 'load-path (concat rsense-home "/etc"))
-(require 'rsense)
-
-(defun my-ruby-mode-setup ()
-  (setq ac-sources (append '(ac-source-rsense) ac-sources))
-  (local-set-key (kbd "C-x j") 'rsense-jump-to-definition))
-(add-hook 'ruby-mode-hook 'my-ruby-mode-setup)
-
 ;;key bind
 (global-set-key (kbd "M-j") 'nil)
 (ac-set-trigger-key "M-j")
