@@ -1,3 +1,13 @@
+/*
+ author: lichuan
+ qq: 308831759
+ email: 308831759@qq.com
+ homepage: www.lichuan.me
+ github: https://github.com/lichuan/misc
+ date: 2013-05-11
+ desc: a星寻路的一种高效实现
+*/
+
 #include <sys/time.h>
 #include <list>
 #include <cstdlib>
@@ -323,7 +333,7 @@ int main()
     struct timeval time_begin, time_end;
     gettimeofday(&time_begin, NULL);
     std::cout << "start time: " << time_begin.tv_sec << " " << time_begin.tv_usec << std::endl;    
-    std::list<Point> path_list = Astar<1000000>::instance()->find_path(cb, Point(x1, y1), Point(x2, y2));
+    std::list<Point> path_list = Astar<500000>::instance()->find_path(cb, Point(x1, y1), Point(x2, y2));
     gettimeofday(&time_end, NULL);
     std::cout << "end time: " << time_end.tv_sec << " " << time_end.tv_usec << std::endl;
     std::cout << "cost time: " << 1000000 * (time_end.tv_sec - time_begin.tv_sec) + time_end.tv_usec - time_begin.tv_usec << " 微秒" << std::endl;    
