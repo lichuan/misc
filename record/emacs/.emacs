@@ -18,6 +18,8 @@
  )
 
 ;;common
+(setq default-buffer-file-coding-system 'gbk)                                                                                                                                    
+(prefer-coding-system 'gbk)
 (setq default-tab-width 4)
 (setq-default indent-tabs-mode nil)
 (setq auto-mode-alist(cons '("\\.h$" . c++-mode) auto-mode-alist))
