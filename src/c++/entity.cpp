@@ -1,10 +1,7 @@
 #include <string>
-#include <iostream>
 #include <map>
 
 typedef unsigned int uint32;
-
-
 
 class Entity
 {
@@ -44,9 +41,7 @@ private:
     std::string m_name;
 };
 
-
-
-//对所有子元素进行回调
+//瀵规墍鏈夊瓙鍏冪礌杩涜鍥炶皟
 template<typename Concrete_Entity>
 class Entity_Exec
 {
@@ -59,10 +54,27 @@ public:
     {
     }
 
-    virtual void exec(Concrete_Entity *entity) = 0;
+    virtual bool exec(Concrete_Entity *entity)
+    {
+        return true;        
+    }    
 };
 
+//鏉′欢鎵ц
+template<typename Concrete_Entity>
+class Entity_Exec_Condition
+{
+public:
+    Entity_Exec_Condition()
+    {
+    }
 
+    virtual ~Entity_Exec_Condition()
+    {
+    }
+
+    virtual bool can_exec(Concrete_Entity *entity) = 0;
+};
 
 template<typename Key>
 class Entity_Map
@@ -116,12 +128,81 @@ protected:
             cb.exec(static_cast<Concrete_Entity*>(iter->second));
         }
     }
+
+    template<typename Concrete_Entity>
+    bool exec_until_false(Entity_Exec<Concrete_Entity> &cb)
+    {
+        for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        {
+            if(!cb.exec(static_cast<Concrete_Entity*>(iter->second)))
+            {
+                return false;
+            }            
+        }
+
+        return true;        
+    }
+
+    template<typename Concrete_Entity>
+    bool exec_until_true(Entity_Exec<Concrete_Entity> &cb)
+    {
+        for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        {
+            if(cb.exec(static_cast<Concrete_Entity*>(iter->second)))
+            {
+                return true;                
+            }            
+        }
+
+        return false;        
+    }
+    
+    template<typename Concrete_Entity>
+    bool exec_if(Entity_Exec<Concrete_Entity> &cb, Entity_Exec_Condition<Concrete_Entity> &cond)
+    {
+        bool ret = false;
+        
+        for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        {
+            Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
+
+            if(cond.can_exec(concrete_entity))
+            {
+                ret = true;                
+                cb.exec(concrete_entity);
+            }
+        }
+
+        return ret;        
+    }
+
+    template<typename Concrete_Entity>
+    bool delete_if(Entity_Exec_Condition<Concrete_Entity> &cond, Entity_Exec<Concrete_Entity> &cb_before_delete = Entity_Exec<Concrete_Entity>())
+    {
+        bool ret = false;
+        
+        for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end();)
+        {
+            Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
+            
+            if(cond.can_exec(concrete_entity))
+            {
+                ret = true;                
+                cb_before_delete.exec(concrete_entity);
+                m_entity_map.erase(iter++);
+            }
+            else
+            {
+                ++iter;
+            }            
+        }
+
+        return ret;        
+    }
     
 private:
     std::map<Key, Entity*> m_entity_map;
 };
-
-
 
 class Entity_ID : protected Entity_Map<uint32>
 {
@@ -138,8 +219,6 @@ protected:
     }
 };
 
-
-
 class Entity_Name : protected Entity_Map<std::string>
 {
 protected:
@@ -155,9 +234,7 @@ protected:
     }
 };
 
-
-
-//占位
+//鍗犱綅
 class Entity_None
 {
 protected:
@@ -172,17 +249,19 @@ protected:
     void add_entity(Entity *entity)
     {
     }
+
+    template<typename Concrete_Entity>
+    bool delete_if(Entity_Exec_Condition<Concrete_Entity> &cond, Entity_Exec<Concrete_Entity> &cb_before_delete = Entity_Exec<Concrete_Entity>())
+    {
+        return true;
+    }
 };
 
-
-
-//提取基类的trait
+//鎻愬彇鍩虹被鐨則rait
 template<typename T>
 struct Get_Super
 {
 };
-
-
 
 template<>
 struct Get_Super<uint32>
@@ -190,17 +269,13 @@ struct Get_Super<uint32>
     typedef Entity_ID Super;
 };
 
-
-
 template<>
 struct Get_Super<std::string>
 {
     typedef Entity_Name Super;
 };
 
-
-
-template<typename Super1, typename Super2 = Entity_None>
+template<typename Concrete_Entity_Type, typename Super1, typename Super2 = Entity_None>
 class Entity_Manager : private Super1, private Super2
 {
 protected:
@@ -214,10 +289,24 @@ protected:
         Super2::add_entity(entity);
     }
 
-    template<typename Key>
-    Entity* get_entity(Key key) const
+    template<typename Concrete_Entity>
+    bool delete_if(Entity_Exec_Condition<Concrete_Entity> &cond)
     {
-        return Get_Super<Key>::Super::get_entity(key);
+        Entity_Exec<Concrete_Entity> cb;
+        
+        return Super1::delete_if(cond, cb) && Super2::delete_if(cond, cb);
+    }
+    
+    template<typename Concrete_Entity>
+    bool delete_if(Entity_Exec_Condition<Concrete_Entity> &cond, Entity_Exec<Concrete_Entity> &cb_before_delete)
+    {
+        return Super1::delete_if(cond, cb_before_delete) && Super2::delete_if(cond, Entity_Exec<Concrete_Entity>());
+    }
+
+    template<typename Key>
+    Concrete_Entity_Type* get_entity(Key key) const
+    {
+        return static_cast<Concrete_Entity_Type*>(Get_Super<Key>::Super::get_entity(key));        
     }
 
 public:
@@ -238,123 +327,27 @@ public:
     }
 
     template<typename Concrete_Entity>
+    bool exec_until_false(Entity_Exec<Concrete_Entity> &cb)
+    {
+        return Super1::exec_until_false(cb);        
+    }
+
+    template<typename Concrete_Entity>
+    bool exec_until_true(Entity_Exec<Concrete_Entity> &cb)
+    {
+        return Super1::exec_until_true(cb);        
+    }
+    
+    template<typename Concrete_Entity>
+    bool exec_if(Entity_Exec<Concrete_Entity> &cb, Entity_Exec_Condition<Concrete_Entity> &cond)
+    {
+        return Super1::exec_if(cb, cond);        
+    }
+    
+    template<typename Concrete_Entity>
     void exec(Entity_Exec<Concrete_Entity> &cb)
     {
         Super1::exec(cb);
     }
 };
 
-
-
-//学生
-class Student : public Entity
-{
-public:
-    Student()
-    {
-    }
-
-    Student(uint32 _id, std::string _name)
-    {
-        id(_id);
-        name(_name);
-    }
-};
-
-
-
-//班级 支持按id和name去索引学生
-class Class : public Entity, public Entity_Manager<Entity_ID, Entity_Name>
-{
-public:
-    Class()
-    {
-    }
-
-    Class(uint32 _id)
-    {
-        id(_id);
-    }
-
-    void add_student(Student *student)
-    {
-        add_entity(student);
-    }
-
-    //按id索引学生
-    Student* get_student(uint32 id)
-    {
-        return static_cast<Student*>(get_entity(id));
-    }
-
-    //按名字索引学生
-    Student* get_student(std::string name)
-    {
-        return static_cast<Student*>(get_entity(name));
-    }
-};
-
-
-
-//年级 支持按id去索引班级
-class Grade : private Entity_Manager<Entity_ID>
-{
-public:
-    Grade()
-    {
-    }
-
-    //添加班级
-    void add_class(Class *cls)
-    {
-        add_entity(cls);
-    }
-
-    //按id索引班级
-    Class* get_class(uint32 id)
-    {
-        return static_cast<Class*>(get_entity(id));
-    }
-};
-
-
-
-//对班级里的所有学生进行回调，打印所有学生的名字，id
-class CB : public Entity_Exec<Student>
-{
-public:
-    CB()
-    {
-    }
-
-    void exec(Student *student)
-    {
-        std::cout << "学生id: " << student->id() << " 学生名字: " << student->name() << std::endl;
-    }
-};
-
-
-
-int main()
-{
-    //学生
-    Student student1(1, "我叫1号学生");
-    Student student2(2, "我叫2号学生");
-
-    //5号班级
-    Class class_5(5);
-    class_5.add_student(&student1);
-    class_5.add_student(&student2);
-    
-    //年级
-    Grade grade;
-    grade.add_class(&class_5);
-
-    //从年级中取5号班级
-    Class* cls = grade.get_class(5);
-
-    CB cb;    
-    cls->exec(cb);
-    
-    return 0;
-}
