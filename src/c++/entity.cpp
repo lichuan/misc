@@ -54,14 +54,11 @@ public:
     {
     }
 
-    virtual bool exec(Concrete_Entity *entity)
-    {
-        return true;        
-    }
+    virtual bool exec(Concrete_Entity *entity) = 0;
     
-    virtual bool can_exec(Concrete_Entity *entity)
+    virtual bool can_delete(Concrete_Entity *entity)
     {
-        return true;
+        return false;
     }    
 };
 
@@ -112,6 +109,10 @@ protected:
     template<typename Concrete_Entity>
     void exec(Entity_Exec<Concrete_Entity> &cb)
     {
+        for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        {
+            cb.exec(static_cast<Concrete_Entity*>(iter->second));            
+        }
     }
 
     template<typename Concrete_Entity>
@@ -137,10 +138,9 @@ protected:
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
 
-            if(cb.can_exec(concrete_entity))
+            if(cb.exec(concrete_entity))
             {
-                ret = true;                
-                cb.exec(concrete_entity);
+                ret = true;
             }
         }
 
@@ -161,10 +161,10 @@ protected:
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
             
-            if(cb.can_exec(concrete_entity))
+            if(cb.can_delete(concrete_entity))
             {
-                ret = true;                
-                cb.exec(concrete_entity);
+                ret = true;
+                cb.exec(concrete_entity);                
                 m_entity_map.erase(iter++);
             }
             else
@@ -302,15 +302,15 @@ protected:
                 return true;
             }
 
-            virtual bool can_exec(Concrete_Entity *entity)
+            virtual bool can_delete(Concrete_Entity *entity)
             {
-                return m_cb.can_exec(entity);
+                return m_cb.can_delete(entity);
             }
 
-            Entity_Exec<Concrete_Entity> *m_cb;            
+            Entity_Exec<Concrete_Entity> *m_cb;
         };
 
-        Entity_Trait_Exec new_cb(cb);        
+        Entity_Trait_Exec new_cb(cb);
         
         return Super1::delete_if(cb) && Super2::delete_if(new_cb);
     } 
