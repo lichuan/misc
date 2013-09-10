@@ -57,23 +57,12 @@ public:
     virtual bool exec(Concrete_Entity *entity)
     {
         return true;        
+    }
+    
+    virtual bool can_exec(Concrete_Entity *entity)
+    {
+        return true;
     }    
-};
-
-//条件执行
-template<typename Concrete_Entity>
-class Entity_Exec_Condition
-{
-public:
-    Entity_Exec_Condition()
-    {
-    }
-
-    virtual ~Entity_Exec_Condition()
-    {
-    }
-
-    virtual bool can_exec(Concrete_Entity *entity) = 0;
 };
 
 template<typename Key>
@@ -123,28 +112,10 @@ protected:
     template<typename Concrete_Entity>
     void exec(Entity_Exec<Concrete_Entity> &cb)
     {
-        for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
-        {
-            cb.exec(static_cast<Concrete_Entity*>(iter->second));
-        }
     }
 
     template<typename Concrete_Entity>
-    bool exec_until_false(Entity_Exec<Concrete_Entity> &cb)
-    {
-        for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
-        {
-            if(!cb.exec(static_cast<Concrete_Entity*>(iter->second)))
-            {
-                return false;
-            }            
-        }
-
-        return true;        
-    }
-
-    template<typename Concrete_Entity>
-    bool exec_until_true(Entity_Exec<Concrete_Entity> &cb)
+    bool exec_until(Entity_Exec<Concrete_Entity> &cb)
     {
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
@@ -158,7 +129,7 @@ protected:
     }
     
     template<typename Concrete_Entity>
-    bool exec_if(Entity_Exec<Concrete_Entity> &cb, Entity_Exec_Condition<Concrete_Entity> &cond)
+    bool exec_if(Entity_Exec<Concrete_Entity> &cb)
     {
         bool ret = false;
         
@@ -166,7 +137,7 @@ protected:
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
 
-            if(cond.can_exec(concrete_entity))
+            if(cb.can_exec(concrete_entity))
             {
                 ret = true;                
                 cb.exec(concrete_entity);
@@ -176,8 +147,13 @@ protected:
         return ret;        
     }
 
+    void delete_entity(Key key)
+    {
+        m_entity_map.erase(key);
+    }
+    
     template<typename Concrete_Entity>
-    bool delete_if(Entity_Exec_Condition<Concrete_Entity> &cond, Entity_Exec<Concrete_Entity> &cb_before_delete = Entity_Exec<Concrete_Entity>())
+    bool delete_if(Entity_Exec<Concrete_Entity> &cb)
     {
         bool ret = false;
         
@@ -185,10 +161,10 @@ protected:
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
             
-            if(cond.can_exec(concrete_entity))
+            if(cb.can_exec(concrete_entity))
             {
                 ret = true;                
-                cb_before_delete.exec(concrete_entity);
+                cb.exec(concrete_entity);
                 m_entity_map.erase(iter++);
             }
             else
@@ -204,12 +180,12 @@ private:
     std::map<Key, Entity*> m_entity_map;
 };
 
-class Entity_ID : protected Entity_Map<uint32>
+class KEY_UINT32 : protected Entity_Map<uint32>
 {
 protected:
     typedef Entity_Map<uint32> Super;
     
-    Entity_ID()
+    KEY_UINT32()
     {
     }
 
@@ -217,14 +193,19 @@ protected:
     {
         Super::add_entity(entity->id(), entity);
     }
+
+    void delete_entity(Entity *entity)
+    {
+        Super::delete_entity(entity->id());
+    }    
 };
 
-class Entity_Name : protected Entity_Map<std::string>
+class KEY_STRING : protected Entity_Map<std::string>
 {
 protected:
     typedef Entity_Map<std::string> Super;
     
-    Entity_Name()
+    KEY_STRING()
     {
     }
 
@@ -232,13 +213,18 @@ protected:
     {
         Super::add_entity(entity->name(), entity);
     }
+
+    void delete_entity(Entity *entity)
+    {
+        Super::delete_entity(entity->name());
+    }    
 };
 
 //占位
-class Entity_None
+class KEY_NONE
 {
 protected:
-    Entity_None()
+    KEY_NONE()
     {
     }
 
@@ -251,10 +237,14 @@ protected:
     }
 
     template<typename Concrete_Entity>
-    bool delete_if(Entity_Exec_Condition<Concrete_Entity> &cond, Entity_Exec<Concrete_Entity> &cb_before_delete = Entity_Exec<Concrete_Entity>())
+    bool delete_if(Entity_Exec<Concrete_Entity> &cb)
     {
         return true;
     }
+
+    void delete_entity(Entity *entity)
+    {
+    }    
 };
 
 //提取基类的trait
@@ -266,16 +256,22 @@ struct Get_Super
 template<>
 struct Get_Super<uint32>
 {
-    typedef Entity_ID Super;
+    typedef KEY_UINT32 Super;
 };
 
 template<>
 struct Get_Super<std::string>
 {
-    typedef Entity_Name Super;
+    typedef KEY_STRING Super;
 };
 
-template<typename Concrete_Entity_Type, typename Super1, typename Super2 = Entity_None>
+template<>
+struct Get_Super<int32>
+{
+    typedef KEY_INT32 Super;
+};
+
+template<typename Concrete_Entity_Type, typename Super1, typename Super2 = KEY_NONE>
 class Entity_Manager : private Super1, private Super2
 {
 protected:
@@ -290,24 +286,46 @@ protected:
     }
 
     template<typename Concrete_Entity>
-    bool delete_if(Entity_Exec_Condition<Concrete_Entity> &cond)
+    bool delete_if(Entity_Exec<Concrete_Entity> &cb)
     {
-        Entity_Exec<Concrete_Entity> cb;
+        template<typename Concrete_Entity>
+        class Entity_Trait_Exec : public Entity_Exec<Concrete_Entity>
+        {
+        public:
+            Entity_Trait_Exec(Entity_Exec<Concrete_Entity> &cb)
+            {
+                m_cb = &cb;
+            }
+            
+            virtual bool exec(Concrete_Entity*)
+            {
+                return true;
+            }
+
+            virtual bool can_exec(Concrete_Entity *entity)
+            {
+                return m_cb.can_exec(entity);
+            }
+
+            Entity_Exec<Concrete_Entity> *m_cb;            
+        };
+
+        Entity_Trait_Exec new_cb(cb);        
         
-        return Super1::delete_if(cond, cb) && Super2::delete_if(cond, cb);
-    }
-    
-    template<typename Concrete_Entity>
-    bool delete_if(Entity_Exec_Condition<Concrete_Entity> &cond, Entity_Exec<Concrete_Entity> &cb_before_delete)
-    {
-        return Super1::delete_if(cond, cb_before_delete) && Super2::delete_if(cond, Entity_Exec<Concrete_Entity>());
-    }
+        return Super1::delete_if(cb) && Super2::delete_if(new_cb);
+    } 
 
     template<typename Key>
     Concrete_Entity_Type* get_entity(Key key) const
     {
         return static_cast<Concrete_Entity_Type*>(Get_Super<Key>::Super::get_entity(key));        
     }
+
+    void delete_entity(Entity *entity)
+    {
+        Super1::delete_entity(entity);
+        Super2::delete_entity(entity);
+    }    
 
 public:
     uint32 size()
@@ -327,21 +345,15 @@ public:
     }
 
     template<typename Concrete_Entity>
-    bool exec_until_false(Entity_Exec<Concrete_Entity> &cb)
+    bool exec_until(Entity_Exec<Concrete_Entity> &cb)
     {
-        return Super1::exec_until_false(cb);        
-    }
-
-    template<typename Concrete_Entity>
-    bool exec_until_true(Entity_Exec<Concrete_Entity> &cb)
-    {
-        return Super1::exec_until_true(cb);        
+        return Super1::exec_until(cb);        
     }
     
     template<typename Concrete_Entity>
-    bool exec_if(Entity_Exec<Concrete_Entity> &cb, Entity_Exec_Condition<Concrete_Entity> &cond)
+    bool exec_if(Entity_Exec<Concrete_Entity> &cb)
     {
-        return Super1::exec_if(cb, cond);        
+        return Super1::exec_if(cb);        
     }
     
     template<typename Concrete_Entity>
