@@ -11,6 +11,7 @@ cygwin
 mingw
 junction.exe
 jenkins
+morn ui
 
 linux: netstat -anpt
 windows: netstat -abnop tcp
