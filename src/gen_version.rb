@@ -9,8 +9,6 @@ VERSION_DIR = "#{WORK_DIR}/version_history"
 $md5_dict_before = {}
 $md5_dict_change = {}
 $md5_dict_all = {}
-$md5_dict_all["cur_version"] = 0
-$md5_dict_all["files"] = {}
 
 def read_md5_from_history
   md5_dict = {}
@@ -40,9 +38,9 @@ def do_md5_file(path, file_name)
       next if f == "version_history"
       do_md5_file(new_path, new_file_name)
     else
-      next if f == "gen_version.rb" or f == "file_version.yaml"
+      next if f == "gen_version.rb" or f == "file_version.yaml" or f == "cur_version.yaml"
       md5val = Digest::MD5.hexdigest(File.read new_path)
-      $md5_dict_all["files"][new_file_name] = md5val
+      $md5_dict_all[new_file_name] = md5val
       if not $md5_dict_before.has_key? new_file_name or $md5_dict_before[new_file_name] != md5val
         $md5_dict_change[new_file_name] = md5val
       end
@@ -52,13 +50,14 @@ end
 
 def update_new_version
   new_version = 1
+  cur_version_path = WORK_DIR + "/cur_version.yaml"
   file_version_path = WORK_DIR + "/file_version.yaml"
-  if File.exist? file_version_path
-    new_version = YAML.load(File.open(file_version_path))["cur_version"] + 1
+  if File.exist? cur_version_path
+    new_version = YAML.load(File.open(cur_version_path))["version"] + 1
   end
   do_md5_file WORK_DIR, ""
   open(VERSION_DIR + "/#{new_version}", "w") {|f| YAML::dump $md5_dict_change, f}
-  $md5_dict_all["cur_version"] = new_version
+  open(cur_version_path, "w") {|f| YAML::dump({"version" => new_version}, f)}
   open(file_version_path, "w") {|f| YAML::dump $md5_dict_all, f}
 end
 
