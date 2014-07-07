@@ -11,11 +11,12 @@ $md5_dict_change = {}
 $md5_dict_all = {}
 
 def read_md5_from_history
+  Dir.mkdir VERSION_DIR if not File.directory? VERSION_DIR
   md5_dict = {}
   Dir.foreach VERSION_DIR do |f|
     next if f == "." or f == ".."
     path = VERSION_DIR + "/" + f
-    md5_dict[f] = YAML.load(File.open(path))
+    md5_dict[f.to_i] = YAML.load(File.open(path))
   end
   
   md5_arr = md5_dict.sort
