@@ -59,7 +59,7 @@ def do_md5_file(path, file_name)
       do_md5_file(new_path, new_file_name)
     else
       next if f == "gen_version.rb" or f == "file_version.yaml" or f == "cur_version.yaml"
-      md5val = Digest::MD5.hexdigest(File.read new_path)
+      md5val = Digest::MD5.hexdigest(File.binread new_path)
       $md5_dict_all[new_file_name] = md5val
       if not $md5_dict_history.has_key? new_file_name or $md5_dict_history[new_file_name] != md5val
         $md5_dict_change[new_file_name] = md5val
