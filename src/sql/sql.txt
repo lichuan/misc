@@ -1,6 +1,5 @@
 SELECT user_id, after_level from logs_character_level_up WHERE event_time < '2016-01-29 00:00:00' and character_id 
-IN (SELECT character_id FROM `logs_character_create` WHERE event_time < '2016-01-29 00:00:00') GROUP BY character_id ORDER BY log_id DESC;
-
+IN (SELECT character_id FROM `logs_character_create` WHERE event_time < '2016-01-29 00:00:00') GROUP BY character_id ORDER BY log_id DESC
 
 SELECT count(*) from logs_character_step WHERE event_time < '2016-01-29 00:00:00' and character_id IN 
 (SELECT character_id FROM `logs_character_create` WHERE event_time < '2016-01-29 00:00:00')
