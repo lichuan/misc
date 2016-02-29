@@ -1,0 +1,23 @@
+SELECT user_id, after_level from logs_character_level_up WHERE event_time < '2016-01-29 00:00:00' and character_id 
+IN (SELECT character_id FROM `logs_character_create` WHERE event_time < '2016-01-29 00:00:00') GROUP BY character_id ORDER BY log_id DESC;
+
+
+SELECT count(*) from logs_character_step WHERE event_time < '2016-01-29 00:00:00' and character_id IN 
+(SELECT character_id FROM `logs_character_create` WHERE event_time < '2016-01-29 00:00:00')
+
+SELECT count(*) from logs_character_step WHERE event_time < '2016-01-29 00:00:00' and 
+character_id IN (SELECT character_id FROM `logs_character_create` WHERE event_time < '2016-01-29 00:00:00') GROUP BY step;
+
+SELECT step, count(*) from logs_character_step INNER JOIN logs_character_create on 
+logs_character_step.user_id = logs_character_create.user_id WHERE logs_character_step.event_time < '2016-01-29 00:00:00' 
+and logs_character_create.event_time < '2016-01-29 00:00:00' GROUP BY step;
+
+SELECT step, count(*) from logs_character_step INNER JOIN 
+logs_character_create on logs_character_step.user_id = logs_character_create.user_id 
+WHERE logs_character_step.event_time < '2016-01-31 00:00:00' and logs_character_step.event_time > '2016-01-30 00:00:00' 
+and logs_character_create.event_time < '2016-01-29 00:00:00' GROUP BY step;
+
+SELECT MM.ml, count(*) from (SELECT max(logs_character_level_up.after_level) as ml, logs_character_level_up.character_id from logs_character_level_up 
+INNER JOIN logs_character_create on logs_character_level_up.user_id = logs_character_create.user_id 
+WHERE logs_character_level_up.event_time < '2016-01-30 00:00:00' and logs_character_level_up.event_time > '2016-01-29 00:00:00'
+and logs_character_create.event_time < '2016-01-29 00:00:00' GROUP BY logs_character_level_up.user_id) as MM GROUP BY MM.ml;
