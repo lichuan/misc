@@ -24,3 +24,6 @@ and logs_character_create.event_time < '2016-01-29 00:00:00' GROUP BY logs_chara
 SELECT M.ml, count(DISTINCT UL.user_id) from logs_user_login UL INNER JOIN (SELECT user_id, max(after_level) as ml from logs_character_level_up WHERE user_id in (SELECT CONCAT('1:', user_id) FROM `logs_user_create` WHERE event_time < '2016-01-29 00:00:00') and 
 event_time < '2016-01-29 00:00:00' GROUP BY user_id) as M on UL.user_id = M.user_id WHERE UL.event_time < '2016-01-30 00:00:00' 
 and UL.event_time > '2016-01-29 00:00:00' GROUP BY M.ml;
+
+SELECT count(DISTINCT UL.user_id) from logs_user_login UL INNER JOIN (SELECT user_id, max(after_level) as ml from logs_character_level_up WHERE user_id in (SELECT CONCAT('1:', user_id) FROM `logs_user_create` WHERE event_time < '2016-01-29 00:00:00') and 
+event_time < '2016-01-29 00:00:00' GROUP BY user_id HAVING ml = 2) as M on UL.user_id = M.user_id WHERE UL.event_time < '2016-01-30 00:00:00' and UL.event_time > '2016-01-29 00:00:00';
