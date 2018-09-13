@@ -16,3 +16,4 @@ morn ui
 linux: netstat -anpt
 windows: netstat -abnop tcp
 tcpdump  tcp and src 192.168.33.89 and port 6789 -nnn -AAA
+ssh -4 -nNT -R 18051:localhost:18051 172.188.177.26
